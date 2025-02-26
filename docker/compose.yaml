@@ -1,0 +1,47 @@
+services:
+  php:
+    build:
+      context: ./php
+      dockerfile: Dockerfile
+      args:
+        - HOST_UID=${HOST_UID}
+    container_name: ${COMPOSE_PROJECT_NAME}_php
+    volumes:
+      - ../app:/var/www/html
+    networks:
+      - net
+
+  nginx:
+    build:
+        context: ./nginx
+        dockerfile: Dockerfile
+    container_name: ${COMPOSE_PROJECT_NAME}_nginx
+    volumes:
+      - ./nginx/config/nginx.conf:/etc/nginx/nginx.conf
+      - ../app:/var/www/html
+    ports:
+      - "80:80"
+    networks:
+      - net
+    depends_on:
+      - php
+
+  db:
+    image: postgres
+    container_name: ${COMPOSE_PROJECT_NAME}_db
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - net
+
+networks:
+  net:
+    name: ${COMPOSE_PROJECT_NAME}_net
+
+volumes:
+  postgres_data:
+    name: ${COMPOSE_PROJECT_NAME}_data
